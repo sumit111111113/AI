@@ -1551,23 +1551,43 @@ class VMSSystem {
                 const result = await response.json();
                 console.log(`📋 Response data:`, result);
             
-            if (response.ok) {
-                const quality = uniqueDescriptors.length >= this.registrationTargetSamples ? 'Excellent' :
-                               uniqueDescriptors.length >= 20 ? 'Very Good' : 'Good';
-                alert(`Registration successful! ${userName} registered with ${uniqueDescriptors.length} high-quality face samples (${quality} coverage).`);
-                await this.loadUsers(); // Reload users
-                this.closeRegistrationModal();
-                document.getElementById('newUserName').value = '';
-            } else {
-                alert(result.error || 'Registration failed');
-                this.registrationInProgress = false; // Reset on error
+                if (response.ok) {
+                    const quality = uniqueDescriptors.length >= this.registrationTargetSamples ? 'Excellent' :
+                                   uniqueDescriptors.length >= 20 ? 'Very Good' : 'Good';
+                    console.log(`✅ Registration successful!`);
+                    alert(`Registration successful! ${userName} registered with ${uniqueDescriptors.length} high-quality face samples (${quality} coverage).`);
+                    await this.loadUsers(); // Reload users
+                    this.closeRegistrationModal();
+                    document.getElementById('newUserName').value = '';
+                } else {
+                    console.log(`❌ Registration failed: ${result.error}`);
+                    alert(result.error || 'Registration failed');
+                    this.resetRegistrationState();
+                }
+
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                console.error('Fetch error:', fetchError);
+                if (fetchError.name === 'AbortError') {
+                    alert('Registration timeout. Please try again.');
+                } else {
+                    alert('Network error during registration. Please try again.');
+                }
+                this.resetRegistrationState();
             }
 
         } catch (error) {
             console.error('Registration error:', error);
             alert('Registration failed. Please try again.');
-            this.registrationInProgress = false; // Reset on error
+            this.resetRegistrationState();
         }
+    }
+
+    resetRegistrationState() {
+        console.log('🔄 Resetting registration state');
+        this.registrationInProgress = false;
+        this.processingStarted = false;
+        this.registrationMode = false;
     }
     
     async showUserManagementModal() {

@@ -1181,9 +1181,11 @@ class VMSSystem {
     }
     
     closeRegistrationModal() {
+        console.log('🚪 Closing registration modal');
         document.getElementById('registrationModal').style.display = 'none';
         this.registrationMode = false;
         this.registrationInProgress = false; // Reset state
+        this.processingStarted = false; // Reset processing state
 
         // Reset registration data
         this.registrationData.descriptors = [];

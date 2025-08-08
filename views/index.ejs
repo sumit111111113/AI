@@ -1527,17 +1527,29 @@ class VMSSystem {
 
             // Use all collected descriptors (they're already filtered for uniqueness)
             const uniqueDescriptors = this.registrationData.descriptors;
-            
-            const response = await fetch('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name: userName,
-                    descriptors: uniqueDescriptors
-                })
-            });
-            
-            const result = await response.json();
+
+            console.log(`📤 Sending registration request for ${userName} with ${uniqueDescriptors.length} samples`);
+
+            // Add timeout to the fetch request
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: userName,
+                        descriptors: uniqueDescriptors
+                    }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+                console.log(`📥 Received response: ${response.status}`);
+
+                const result = await response.json();
+                console.log(`📋 Response data:`, result);
             
             if (response.ok) {
                 const quality = uniqueDescriptors.length >= this.registrationTargetSamples ? 'Excellent' :

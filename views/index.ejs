@@ -456,6 +456,79 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
+/* User Management Styles */
+.users-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.user-info-item {
+    flex: 1;
+}
+
+.user-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #00ff88;
+    margin: 0 0 5px 0;
+}
+
+.user-details {
+    font-size: 0.9rem;
+    color: #ccc;
+    margin: 0;
+}
+
+.user-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.delete-btn {
+    background: rgba(255, 68, 68, 0.2);
+    border: 1px solid rgba(255, 68, 68, 0.4);
+    color: #ff4444;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.delete-btn:hover {
+    background: rgba(255, 68, 68, 0.3);
+    transform: translateY(-1px);
+}
+
+.loading-text {
+    text-align: center;
+    color: #ccc;
+    padding: 20px;
+    font-style: italic;
+}
+
+.empty-state {
+    text-align: center;
+    color: #666;
+    padding: 40px 20px;
+}
+
+.empty-state h4 {
+    color: #999;
+    margin-bottom: 10px;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .vms-header {

@@ -666,6 +666,7 @@ class VMSSystem {
         this.lastRegistrationCapture = 0;
         this.registrationCaptureInterval = 200; // Capture every 200ms during registration
         this.registrationInProgress = false; // Prevent duplicate registration calls
+        this.processingStarted = false; // Track if processing actually started
 
         this.init();
     }

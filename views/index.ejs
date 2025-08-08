@@ -652,7 +652,13 @@ class VMSSystem {
             startTime: null,
             duration: 5000
         };
-        
+
+        // Face tracking properties
+        this.trackingMode = false;
+        this.trackedFaces = new Map();
+        this.captureInterval = 2000; // Capture every 2 seconds
+        this.lastCaptureTime = 0;
+
         this.init();
     }
     

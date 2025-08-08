@@ -1406,7 +1406,13 @@ class VMSSystem {
             return;
         }
 
+        if (this.registrationInProgress) {
+            console.log('Registration already in progress, ignoring duplicate call');
+            return;
+        }
+
         this.registrationMode = true;
+        this.registrationInProgress = false; // Will be set to true when auto-completing
         this.registrationData.descriptors = [];
         this.registrationData.startTime = Date.now();
         this.lastRegistrationCapture = 0;

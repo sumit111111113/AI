@@ -1318,8 +1318,14 @@ class VMSSystem {
                         });
 
                         // Store descriptors during registration
-                        if (this.registrationData.startTime) {
+                        if (this.registrationData.startTime && this.registrationMode) {
                             const currentTime = Date.now();
+
+                            // Stop collecting if we've reached the target
+                            if (this.registrationData.descriptors.length >= this.registrationTargetSamples) {
+                                console.log('🛑 Target samples reached, stopping collection');
+                                return;
+                            }
 
                             // Only capture if enough time has passed since last capture
                             if (currentTime - this.lastRegistrationCapture >= this.registrationCaptureInterval) {

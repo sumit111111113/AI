@@ -1358,38 +1358,32 @@ class VMSSystem {
     
     async startRegistration() {
         const userName = document.getElementById('newUserName').value.trim();
-        
+
         if (!userName) {
             alert('Please enter a name');
             return;
         }
-        
+
         this.registrationMode = true;
         this.registrationData.descriptors = [];
         this.registrationData.startTime = Date.now();
-        
+        this.lastRegistrationCapture = 0;
+
         const progressContainer = document.getElementById('registrationProgress');
-        const progressFill = document.getElementById('progressFill');
-        const timeLeftSpan = document.getElementById('timeLeft');
-        
         progressContainer.style.display = 'block';
-        
-        const updateProgress = () => {
-            const elapsed = Date.now() - this.registrationData.startTime;
-            const progress = Math.min((elapsed / this.registrationData.duration) * 100, 100);
-            const timeLeft = Math.max(Math.ceil((this.registrationData.duration - elapsed) / 1000), 0);
-            
-            progressFill.style.width = progress + '%';
-            timeLeftSpan.textContent = timeLeft;
-            
-            if (elapsed >= this.registrationData.duration) {
+
+        // Initialize progress display
+        this.updateRegistrationProgress();
+
+        // Set a maximum time limit (60 seconds) as fallback
+        setTimeout(() => {
+            if (this.registrationMode && this.registrationData.descriptors.length >= this.registrationMinSamples) {
                 this.completeRegistration(userName);
-            } else {
-                setTimeout(updateProgress, 100);
+            } else if (this.registrationMode) {
+                alert(`Registration timeout. Only collected ${this.registrationData.descriptors.length} samples. Please try again with better lighting and face positioning.`);
+                this.closeRegistrationModal();
             }
-        };
-        
-        updateProgress();
+        }, 60000);
     }
     
     async completeRegistration(userName) {

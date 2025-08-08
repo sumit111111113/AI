@@ -881,6 +881,74 @@ class VMSSystem {
             this.switchCamera();
         }
     }
+
+    toggleTracking() {
+        this.trackingMode = !this.trackingMode;
+        const trackingBtn = document.getElementById('trackingToggle');
+        const trackingStatus = document.getElementById('trackingStatus');
+
+        if (this.trackingMode) {
+            trackingBtn.classList.add('active');
+            trackingBtn.textContent = '🔴 Stop';
+            trackingStatus.textContent = 'Tracking: ON';
+            trackingStatus.classList.add('active');
+            this.updateStatus('Face tracking activated - Capturing images');
+        } else {
+            trackingBtn.classList.remove('active');
+            trackingBtn.textContent = '📸 Track';
+            trackingStatus.textContent = 'Tracking: OFF';
+            trackingStatus.classList.remove('active');
+            this.updateStatus('Face tracking deactivated');
+            this.trackedFaces.clear();
+        }
+    }
+
+    captureFaceImage(detection, faceId) {
+        try {
+            // Create a temporary canvas for face capture
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+
+            // Set canvas size to face box dimensions with padding
+            const padding = 20;
+            const box = detection.detection.box;
+            tempCanvas.width = box.width + (padding * 2);
+            tempCanvas.height = box.height + (padding * 2);
+
+            // Draw the face region from video
+            tempCtx.drawImage(
+                this.video,
+                box.x - padding, box.y - padding, // Source position
+                box.width + (padding * 2), box.height + (padding * 2), // Source size
+                0, 0, // Destination position
+                tempCanvas.width, tempCanvas.height // Destination size
+            );
+
+            // Convert to blob and create download link
+            tempCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const filename = `face-capture-${faceId}-${timestamp}.jpg`;
+
+                // Create invisible download link
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // Clean up URL
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+                console.log(`Face image captured: ${filename}`);
+            }, 'image/jpeg', 0.8);
+
+        } catch (error) {
+            console.error('Error capturing face image:', error);
+        }
+    }
     
     async detectFaces() {
         if (!this.isRunning || !this.video || this.video.paused || this.video.ended) {

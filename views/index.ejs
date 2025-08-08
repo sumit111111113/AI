@@ -974,8 +974,13 @@ class VMSSystem {
                     width: this.video.videoWidth,
                     height: this.video.videoHeight
                 });
-                
+
                 this.processDetections(resizedDetections);
+
+                // Handle face tracking and capture
+                if (this.trackingMode) {
+                    this.handleFaceTracking(resizedDetections);
+                }
             } else {
                 this.hideUserInfo();
             }

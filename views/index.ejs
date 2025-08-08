@@ -1497,13 +1497,18 @@ class VMSSystem {
     }
     
     async completeRegistration(userName) {
-        // Prevent duplicate calls
-        if (this.registrationInProgress) {
-            console.log('Registration already in progress, ignoring duplicate call');
+        console.log(`🚀 Starting completeRegistration for: ${userName}`);
+        console.log(`registrationInProgress: ${this.registrationInProgress}`);
+        console.log(`Sample count: ${this.registrationData.descriptors.length}`);
+
+        // Only prevent duplicate calls if we're actually processing (not just marked as in progress)
+        if (this.registrationInProgress && this.processingStarted) {
+            console.log('Registration already processing, ignoring duplicate call');
             return;
         }
 
         this.registrationInProgress = true;
+        this.processingStarted = true;
 
         try {
             const sampleCount = this.registrationData.descriptors.length;

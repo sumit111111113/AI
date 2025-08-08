@@ -1255,14 +1255,17 @@ class VMSSystem {
 
                             // Color based on confidence and if sample will be captured
                             let color = '#ff4444'; // Red for low confidence
-                            let label = 'Low Quality';
+                            let label = 'Too Low';
 
-                            if (confidence > 0.8) {
+                            if (confidence > 0.7) {
                                 color = '#00ff88'; // Green for high confidence
-                                label = 'High Quality';
-                            } else if (confidence > 0.6) {
+                                label = 'Excellent';
+                            } else if (confidence > 0.5) {
+                                color = '#00ff88'; // Green for acceptable confidence (will be captured)
+                                label = 'Good';
+                            } else if (confidence > 0.3) {
                                 color = '#ffa500'; // Orange for medium confidence
-                                label = 'Medium Quality';
+                                label = 'Fair';
                             }
 
                             regCtx.strokeStyle = color;

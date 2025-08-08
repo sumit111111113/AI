@@ -1134,6 +1134,99 @@ class VMSSystem {
         }
     }
     
+    async showUserManagementModal() {
+        document.getElementById('userManagementModal').style.display = 'block';
+        await this.loadUsersForManagement();
+    }
+
+    closeUserManagementModal() {
+        document.getElementById('userManagementModal').style.display = 'none';
+    }
+
+    async loadUsersForManagement() {
+        const usersList = document.getElementById('usersList');
+        usersList.innerHTML = '<p class="loading-text">Loading users...</p>';
+
+        try {
+            const response = await fetch('/api/users');
+            const users = await response.json();
+
+            if (users.length === 0) {
+                usersList.innerHTML = `
+                    <div class="empty-state">
+                        <h4>No Users Registered</h4>
+                        <p>Register some users to see them here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            usersList.innerHTML = users.map(user => `
+                <div class="user-item" data-user-id="${user.id}">
+                    <div class="user-info-item">
+                        <h4 class="user-name">${user.name}</h4>
+                        <p class="user-details">
+                            Registered: ${new Date(user.createdAt).toLocaleDateString()} |
+                            Samples: ${user.descriptors.length}
+                        </p>
+                    </div>
+                    <div class="user-actions">
+                        <button class="delete-btn" onclick="vmsSystem.deleteUser('${user.id}', '${user.name}')">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+        } catch (error) {
+            console.error('Error loading users for management:', error);
+            usersList.innerHTML = `
+                <div class="empty-state">
+                    <h4>Error Loading Users</h4>
+                    <p>Please try again later.</p>
+                </div>
+            `;
+        }
+    }
+
+    async deleteUser(userId, userName) {
+        if (!confirm(`Are you sure you want to delete "${userName}"? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/users/${userId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                // Remove from UI
+                const userItem = document.querySelector(`[data-user-id="${userId}"]`);
+                if (userItem) {
+                    userItem.remove();
+                }
+
+                // Reload users data for recognition
+                await this.loadUsers();
+
+                // Show success message
+                this.updateStatus(`User "${userName}" deleted successfully`);
+
+                // Check if no users left
+                const remainingUsers = document.querySelectorAll('.user-item').length;
+                if (remainingUsers === 0) {
+                    await this.loadUsersForManagement();
+                }
+            } else {
+                const result = await response.json();
+                alert(result.error || 'Failed to delete user');
+            }
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            alert('Failed to delete user. Please try again.');
+        }
+    }
+
     updateStatus(message) {
         document.getElementById('statusText').textContent = message;
         console.log('VMS:', message);

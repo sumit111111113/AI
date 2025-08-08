@@ -1355,10 +1355,17 @@ class VMSSystem {
                                                 this.registrationData.descriptors.push(Array.from(detection.descriptor));
                                                 this.lastRegistrationCapture = currentTime;
 
+                                                const sampleCount = this.registrationData.descriptors.length;
+                                                console.log(`✅ Captured sample ${sampleCount}/${this.registrationTargetSamples} (confidence: ${Math.round(confidence * 100)}%)`);
+
                                                 // Update UI
                                                 this.updateRegistrationProgress();
 
-                                                console.log(`✅ Captured sample ${this.registrationData.descriptors.length}/${this.registrationTargetSamples} (confidence: ${Math.round(confidence * 100)}%)`);
+                                                // Check if target reached immediately
+                                                if (sampleCount >= this.registrationTargetSamples && !this.registrationInProgress) {
+                                                    console.log('🎯 Target reached immediately! Triggering completion...');
+                                                    this.registrationMode = false; // Stop further collection
+                                                }
                                             } else {
                                                 console.log(`❌ Sample too similar to existing ones`);
                                             }

@@ -1213,15 +1213,28 @@ class VMSSystem {
             regVideo.srcObject = stream;
 
             // Wait for video metadata to load
-            await new Promise(resolve => {
-                regVideo.onloadedmetadata = () => {
-                    console.log(`Registration video loaded: ${regVideo.videoWidth}x${regVideo.videoHeight}`);
-                    resolve();
-                };
-            });
+            await new Promise((resolve, reject) => {
+                let attempts = 0;
+                const maxAttempts = 50; // 5 seconds max
 
-            // Wait a bit more for video to start playing
-            await new Promise(resolve => setTimeout(resolve, 500));
+                const checkVideo = () => {
+                    attempts++;
+                    if (regVideo.readyState >= 2 && regVideo.videoWidth > 0 && regVideo.videoHeight > 0) {
+                        console.log(`Registration video loaded: ${regVideo.videoWidth}x${regVideo.videoHeight} (attempts: ${attempts})`);
+                        resolve();
+                    } else if (attempts >= maxAttempts) {
+                        reject(new Error('Video failed to load properly'));
+                    } else {
+                        setTimeout(checkVideo, 100);
+                    }
+                };
+
+                regVideo.onloadedmetadata = checkVideo;
+                regVideo.oncanplay = checkVideo;
+
+                // Start checking immediately
+                setTimeout(checkVideo, 100);
+            });
 
             // Start face detection for registration preview
             const detectRegistrationFaces = async () => {

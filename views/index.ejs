@@ -15,7 +15,7 @@
             <select id="cameraSelect" class="camera-selector">
                 <option value="">Loading cameras...</option>
             </select>
-            <button id="flipCamera" class="flip-btn" title="Flip Camera">📷</button>
+            <button id="flipCamera" class="flip-btn" title="Flip Camera">��</button>
             <button id="trackingToggle" class="tracking-btn" title="Toggle Face Tracking">📸 Track</button>
             <button id="registerUserBtn" class="register-btn" title="Register New User">👤 Register</button>
             <button id="manageUsersBtn" class="manage-btn" title="Manage Users">⚙️ Manage</button>
@@ -1367,14 +1367,19 @@ class VMSSystem {
 
         // Update quality guidance
         if (qualityText) {
-            if (sampleCount < 8) {
-                qualityText.textContent = 'Look straight at the camera';
+            const timeSinceStart = Date.now() - this.registrationData.startTime;
+
+            if (sampleCount < 3 && timeSinceStart > 5000) {
+                qualityText.textContent = 'Move slightly or adjust lighting if stuck';
+                qualityText.style.color = '#ff4444';
+            } else if (sampleCount < 8) {
+                qualityText.textContent = 'Look straight at the camera - move head slightly';
                 qualityText.style.color = '#ffa500';
             } else if (sampleCount < 15) {
-                qualityText.textContent = 'Turn your head slightly left and right';
+                qualityText.textContent = 'Great! Turn your head slightly left and right';
                 qualityText.style.color = '#00ff88';
             } else if (sampleCount < 20) {
-                qualityText.textContent = 'Look up and down slightly';
+                qualityText.textContent = 'Perfect! Look up and down slightly';
                 qualityText.style.color = '#00ff88';
             } else if (sampleCount >= this.registrationTargetSamples) {
                 qualityText.textContent = 'Excellent! Processing registration...';

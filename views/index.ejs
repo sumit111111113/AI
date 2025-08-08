@@ -659,6 +659,12 @@ class VMSSystem {
         this.captureInterval = 2000; // Capture every 2 seconds
         this.lastCaptureTime = 0;
 
+        // Registration improvements
+        this.registrationTargetSamples = 25; // Target 25 samples
+        this.registrationMinSamples = 15; // Minimum 15 samples
+        this.lastRegistrationCapture = 0;
+        this.registrationCaptureInterval = 200; // Capture every 200ms during registration
+
         this.init();
     }
     

@@ -710,6 +710,11 @@ class VMSSystem {
             this.showUserManagementModal();
         });
         
+        // User management modal
+        document.getElementById('closeManagementModal').addEventListener('click', () => {
+            this.closeUserManagementModal();
+        });
+
         // Registration modal
         document.getElementById('closeModal').addEventListener('click', () => {
             this.closeRegistrationModal();

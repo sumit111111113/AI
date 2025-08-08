@@ -1256,7 +1256,7 @@ class VMSSystem {
                         .detectAllFaces(regVideo, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.3 }))
                         .withFaceLandmarks()
                         .withFaceDescriptors();
-                
+
                     regCtx.clearRect(0, 0, regCanvas.width, regCanvas.height);
 
                     if (detections.length > 0) {
@@ -1269,10 +1269,17 @@ class VMSSystem {
                             return;
                         }
 
-                        const resized = faceapi.resizeResults(detections, {
-                            width: regVideo.videoWidth,
-                            height: regVideo.videoHeight
-                        });
+                        let resized;
+                        try {
+                            resized = faceapi.resizeResults(detections, {
+                                width: regVideo.videoWidth,
+                                height: regVideo.videoHeight
+                            });
+                        } catch (resizeError) {
+                            console.error(`ResizeResults error: ${resizeError.message}, dimensions: ${regVideo.videoWidth}x${regVideo.videoHeight}`);
+                            setTimeout(detectRegistrationFaces, 100);
+                            return;
+                        }
 
                         // Draw detection boxes manually
                         resized.forEach(detection => {

@@ -1287,14 +1287,23 @@ class VMSSystem {
                                     if (detection.descriptor) {
                                         // Check quality by ensuring descriptor has good confidence
                                         const confidence = detection.detection.score;
-                                        if (confidence > 0.8) { // High confidence threshold
+                                        console.log(`Detection confidence: ${confidence}`);
+
+                                        // Lower confidence threshold for more samples
+                                        if (confidence > 0.5) { // Reduced from 0.8 to 0.5
 
                                             // Check if this descriptor is unique enough
-                                            const isUnique = this.registrationData.descriptors.length === 0 ||
-                                                !this.registrationData.descriptors.some(existingDesc => {
-                                                    const distance = faceapi.euclideanDistance(existingDesc, detection.descriptor);
-                                                    return distance < 0.3; // Similar descriptors threshold
-                                                });
+                                            let isUnique = this.registrationData.descriptors.length === 0;
+
+                                            if (!isUnique) {
+                                                // Check uniqueness with more lenient threshold
+                                                const distances = this.registrationData.descriptors.map(existingDesc =>
+                                                    faceapi.euclideanDistance(existingDesc, detection.descriptor)
+                                                );
+                                                const minDistance = Math.min(...distances);
+                                                isUnique = minDistance > 0.15; // Reduced from 0.3 to 0.15
+                                                console.log(`Min distance to existing samples: ${minDistance}, isUnique: ${isUnique}`);
+                                            }
 
                                             if (isUnique) {
                                                 this.registrationData.descriptors.push(Array.from(detection.descriptor));
@@ -1303,8 +1312,12 @@ class VMSSystem {
                                                 // Update UI
                                                 this.updateRegistrationProgress();
 
-                                                console.log(`Captured sample ${this.registrationData.descriptors.length}/${this.registrationTargetSamples}`);
+                                                console.log(`✅ Captured sample ${this.registrationData.descriptors.length}/${this.registrationTargetSamples} (confidence: ${Math.round(confidence * 100)}%)`);
+                                            } else {
+                                                console.log(`❌ Sample too similar to existing ones`);
                                             }
+                                        } else {
+                                            console.log(`❌ Confidence too low: ${Math.round(confidence * 100)}%`);
                                         }
                                     }
                                 });

@@ -1216,11 +1216,18 @@ class VMSSystem {
                 if (document.getElementById('registrationModal').style.display !== 'block') {
                     return;
                 }
-                
-                const detections = await faceapi
-                    .detectAllFaces(regVideo, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.3 }))
-                    .withFaceLandmarks()
-                    .withFaceDescriptors();
+
+                // Check if video is ready
+                if (regVideo.paused || regVideo.ended || !regVideo.videoWidth || !regVideo.videoHeight) {
+                    setTimeout(detectRegistrationFaces, 100);
+                    return;
+                }
+
+                try {
+                    const detections = await faceapi
+                        .detectAllFaces(regVideo, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.3 }))
+                        .withFaceLandmarks()
+                        .withFaceDescriptors();
                 
                 regCtx.clearRect(0, 0, regCanvas.width, regCanvas.height);
                 

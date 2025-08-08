@@ -1265,11 +1265,36 @@ class VMSSystem {
 
                         // Store descriptors during registration
                         if (this.registrationData.startTime) {
-                            detections.forEach(detection => {
-                                if (detection.descriptor) {
-                                    this.registrationData.descriptors.push(Array.from(detection.descriptor));
-                                }
-                            });
+                            const currentTime = Date.now();
+
+                            // Only capture if enough time has passed since last capture
+                            if (currentTime - this.lastRegistrationCapture >= this.registrationCaptureInterval) {
+                                detections.forEach(detection => {
+                                    if (detection.descriptor) {
+                                        // Check quality by ensuring descriptor has good confidence
+                                        const confidence = detection.detection.score;
+                                        if (confidence > 0.8) { // High confidence threshold
+
+                                            // Check if this descriptor is unique enough
+                                            const isUnique = this.registrationData.descriptors.length === 0 ||
+                                                !this.registrationData.descriptors.some(existingDesc => {
+                                                    const distance = faceapi.euclideanDistance(existingDesc, detection.descriptor);
+                                                    return distance < 0.3; // Similar descriptors threshold
+                                                });
+
+                                            if (isUnique) {
+                                                this.registrationData.descriptors.push(Array.from(detection.descriptor));
+                                                this.lastRegistrationCapture = currentTime;
+
+                                                // Update UI
+                                                this.updateRegistrationProgress();
+
+                                                console.log(`Captured sample ${this.registrationData.descriptors.length}/${this.registrationTargetSamples}`);
+                                            }
+                                        }
+                                    }
+                                });
+                            }
                         }
                     } else {
                         // Show guidance text when no face detected

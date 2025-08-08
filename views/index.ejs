@@ -1388,19 +1388,22 @@ class VMSSystem {
     
     async completeRegistration(userName) {
         try {
-            if (this.registrationData.descriptors.length === 0) {
+            const sampleCount = this.registrationData.descriptors.length;
+
+            if (sampleCount === 0) {
                 alert('No face detected during registration. Please try again.');
                 this.closeRegistrationModal();
                 return;
             }
-            
-            // Filter out duplicate descriptors to improve quality
-            const uniqueDescriptors = this.registrationData.descriptors.filter((desc, index, arr) => {
-                return index === 0 || !arr.slice(0, index).some(prevDesc => {
-                    const distance = faceapi.euclideanDistance(desc, prevDesc);
-                    return distance < 0.1; // Very similar descriptors
-                });
-            });
+
+            if (sampleCount < this.registrationMinSamples) {
+                alert(`Not enough face samples collected (${sampleCount}/${this.registrationMinSamples}). Please try again for better accuracy.`);
+                this.closeRegistrationModal();
+                return;
+            }
+
+            // Use all collected descriptors (they're already filtered for uniqueness)
+            const uniqueDescriptors = this.registrationData.descriptors;
             
             const response = await fetch('/api/register', {
                 method: 'POST',

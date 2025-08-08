@@ -704,6 +704,11 @@ class VMSSystem {
         document.getElementById('registerUserBtn').addEventListener('click', () => {
             this.showRegistrationModal();
         });
+
+        // Manage users button
+        document.getElementById('manageUsersBtn').addEventListener('click', () => {
+            this.showUserManagementModal();
+        });
         
         // Registration modal
         document.getElementById('closeModal').addEventListener('click', () => {

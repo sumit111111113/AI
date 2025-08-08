@@ -1243,11 +1243,12 @@ class VMSSystem {
                 }
 
                 // Check if video is ready and has valid dimensions
-                if (regVideo.paused || regVideo.ended || regVideo.readyState < 2 ||
+                if (regVideo.paused || regVideo.ended || regVideo.readyState < 3 ||
                     !regVideo.videoWidth || !regVideo.videoHeight ||
-                    regVideo.videoWidth === 0 || regVideo.videoHeight === 0) {
+                    regVideo.videoWidth === 0 || regVideo.videoHeight === 0 ||
+                    regVideo.videoWidth < 10 || regVideo.videoHeight < 10) {
                     console.log(`Video not ready: paused=${regVideo.paused}, ended=${regVideo.ended}, readyState=${regVideo.readyState}, dimensions=${regVideo.videoWidth}x${regVideo.videoHeight}`);
-                    setTimeout(detectRegistrationFaces, 100);
+                    setTimeout(detectRegistrationFaces, 200); // Increased delay
                     return;
                 }
 

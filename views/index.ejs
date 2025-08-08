@@ -1211,6 +1211,9 @@ class VMSSystem {
                 };
             });
 
+            // Wait a bit more for video to start playing
+            await new Promise(resolve => setTimeout(resolve, 500));
+
             // Start face detection for registration preview
             const detectRegistrationFaces = async () => {
                 if (document.getElementById('registrationModal').style.display !== 'block') {

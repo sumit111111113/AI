@@ -993,6 +993,71 @@ class VMSSystem {
         setTimeout(() => this.detectFaces(), 100);
     }
     
+    handleFaceTracking(detections) {
+        const currentTime = Date.now();
+
+        // Only capture if enough time has passed since last capture
+        if (currentTime - this.lastCaptureTime < this.captureInterval) {
+            return;
+        }
+
+        for (let i = 0; i < detections.length; i++) {
+            const detection = detections[i];
+            const box = detection.detection.box;
+
+            // Create a unique ID for this face based on position and size
+            const faceId = `face-${Math.round(box.x)}-${Math.round(box.y)}-${Math.round(box.width)}`;
+
+            // Check if this is a new face or significantly moved
+            if (!this.trackedFaces.has(faceId)) {
+                this.trackedFaces.set(faceId, {
+                    firstSeen: currentTime,
+                    lastCaptured: 0,
+                    box: box
+                });
+            }
+
+            const faceInfo = this.trackedFaces.get(faceId);
+
+            // Capture image if this face hasn't been captured recently
+            if (currentTime - faceInfo.lastCaptured >= this.captureInterval) {
+                this.captureFaceImage(detection, faceId);
+                faceInfo.lastCaptured = currentTime;
+                this.lastCaptureTime = currentTime;
+
+                // Add visual feedback for capture
+                this.drawCaptureEffect(box);
+
+                // Update status
+                const totalCaptured = Array.from(this.trackedFaces.values())
+                    .filter(f => f.lastCaptured > 0).length;
+                this.updateStatus(`Face tracking: ${totalCaptured} images captured`);
+            }
+        }
+
+        // Clean up old tracked faces (older than 10 seconds)
+        const cutoffTime = currentTime - 10000;
+        for (const [faceId, faceInfo] of this.trackedFaces) {
+            if (faceInfo.firstSeen < cutoffTime) {
+                this.trackedFaces.delete(faceId);
+            }
+        }
+    }
+
+    drawCaptureEffect(box) {
+        // Draw a flash effect to indicate capture
+        this.ctx.save();
+        this.ctx.globalAlpha = 0.7;
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(box.x - 5, box.y - 5, box.width + 10, box.height + 10);
+        this.ctx.restore();
+
+        // Remove the effect after a short time
+        setTimeout(() => {
+            this.ctx.clearRect(box.x - 5, box.y - 5, box.width + 10, box.height + 10);
+        }, 100);
+    }
+
     processDetections(detections) {
         let recognizedUsers = [];
         let unknownFaces = [];

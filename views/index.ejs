@@ -15,7 +15,7 @@
             <select id="cameraSelect" class="camera-selector">
                 <option value="">Loading cameras...</option>
             </select>
-            <button id="flipCamera" class="flip-btn" title="Flip Camera">��</button>
+            <button id="flipCamera" class="flip-btn" title="Flip Camera">📷</button>
             <button id="trackingToggle" class="tracking-btn" title="Toggle Face Tracking">📸 Track</button>
             <button id="registerUserBtn" class="register-btn" title="Register New User">👤 Register</button>
             <button id="manageUsersBtn" class="manage-btn" title="Manage Users">⚙️ Manage</button>
@@ -1227,8 +1227,11 @@ class VMSSystem {
                     return;
                 }
 
-                // Check if video is ready
-                if (regVideo.paused || regVideo.ended || !regVideo.videoWidth || !regVideo.videoHeight) {
+                // Check if video is ready and has valid dimensions
+                if (regVideo.paused || regVideo.ended || regVideo.readyState < 2 ||
+                    !regVideo.videoWidth || !regVideo.videoHeight ||
+                    regVideo.videoWidth === 0 || regVideo.videoHeight === 0) {
+                    console.log(`Video not ready: paused=${regVideo.paused}, ended=${regVideo.ended}, readyState=${regVideo.readyState}, dimensions=${regVideo.videoWidth}x${regVideo.videoHeight}`);
                     setTimeout(detectRegistrationFaces, 100);
                     return;
                 }
@@ -1508,7 +1511,7 @@ class VMSSystem {
                     </div>
                     <div class="user-actions">
                         <button class="delete-btn" onclick="vmsSystem.deleteUser('${user.id}', '${user.name}')">
-                            🗑️ Delete
+                            ���️ Delete
                         </button>
                     </div>
                 </div>

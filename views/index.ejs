@@ -1385,10 +1385,11 @@ class VMSSystem {
             } else if (sampleCount < 20) {
                 qualityText.textContent = 'Perfect! Look up and down slightly';
                 qualityText.style.color = '#00ff88';
-            } else if (sampleCount >= this.registrationTargetSamples) {
+            } else if (sampleCount >= this.registrationTargetSamples && !this.registrationInProgress) {
                 qualityText.textContent = 'Excellent! Processing registration...';
                 qualityText.style.color = '#00ff88';
                 // Auto-complete when target reached
+                this.registrationInProgress = true;
                 setTimeout(() => this.completeRegistration(document.getElementById('newUserName').value.trim()), 1000);
             } else {
                 qualityText.textContent = 'Almost done! A few more angles';

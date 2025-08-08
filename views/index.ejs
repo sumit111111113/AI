@@ -750,6 +750,11 @@ class VMSSystem {
         document.getElementById('flipCamera').addEventListener('click', () => {
             this.flipCamera();
         });
+
+        // Face tracking toggle
+        document.getElementById('trackingToggle').addEventListener('click', () => {
+            this.toggleTracking();
+        });
         
         // Register user button
         document.getElementById('registerUserBtn').addEventListener('click', () => {

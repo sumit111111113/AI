@@ -1182,7 +1182,8 @@ class VMSSystem {
     closeRegistrationModal() {
         document.getElementById('registrationModal').style.display = 'none';
         this.registrationMode = false;
-        
+        this.registrationInProgress = false; // Reset state
+
         // Reset registration data
         this.registrationData.descriptors = [];
         this.registrationData.startTime = null;

@@ -1251,16 +1251,30 @@ class VMSSystem {
                         // Draw detection boxes manually
                         resized.forEach(detection => {
                             const box = detection.detection.box;
-                            regCtx.strokeStyle = '#00ff88';
-                            regCtx.lineWidth = 2;
+                            const confidence = detection.detection.score;
+
+                            // Color based on confidence and if sample will be captured
+                            let color = '#ff4444'; // Red for low confidence
+                            let label = 'Low Quality';
+
+                            if (confidence > 0.8) {
+                                color = '#00ff88'; // Green for high confidence
+                                label = 'High Quality';
+                            } else if (confidence > 0.6) {
+                                color = '#ffa500'; // Orange for medium confidence
+                                label = 'Medium Quality';
+                            }
+
+                            regCtx.strokeStyle = color;
+                            regCtx.lineWidth = 3;
                             regCtx.strokeRect(box.x, box.y, box.width, box.height);
 
-                            // Add text indicator
-                            regCtx.fillStyle = '#00ff88';
-                            regCtx.fillRect(box.x, box.y - 20, 80, 20);
+                            // Add confidence indicator
+                            regCtx.fillStyle = color;
+                            regCtx.fillRect(box.x, box.y - 25, 120, 25);
                             regCtx.fillStyle = '#000';
                             regCtx.font = 'bold 10px Arial';
-                            regCtx.fillText('Face Found', box.x + 5, box.y - 8);
+                            regCtx.fillText(`${label} (${Math.round(confidence * 100)}%)`, box.x + 5, box.y - 8);
                         });
 
                         // Store descriptors during registration

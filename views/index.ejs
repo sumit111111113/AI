@@ -1435,6 +1435,14 @@ class VMSSystem {
     }
     
     async completeRegistration(userName) {
+        // Prevent duplicate calls
+        if (this.registrationInProgress) {
+            console.log('Registration already in progress, ignoring duplicate call');
+            return;
+        }
+
+        this.registrationInProgress = true;
+
         try {
             const sampleCount = this.registrationData.descriptors.length;
 

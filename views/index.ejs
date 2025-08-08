@@ -1196,13 +1196,21 @@ class VMSSystem {
             const regVideo = document.getElementById('registrationVideo');
             const regCanvas = document.getElementById('registrationOverlay');
             const regCtx = regCanvas.getContext('2d');
-            
+
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: { width: 300, height: 225 }
             });
-            
+
             regVideo.srcObject = stream;
-            
+
+            // Wait for video metadata to load
+            await new Promise(resolve => {
+                regVideo.onloadedmetadata = () => {
+                    console.log(`Registration video loaded: ${regVideo.videoWidth}x${regVideo.videoHeight}`);
+                    resolve();
+                };
+            });
+
             // Start face detection for registration preview
             const detectRegistrationFaces = async () => {
                 if (document.getElementById('registrationModal').style.display !== 'block') {

@@ -1356,6 +1356,8 @@ class VMSSystem {
         const targetSamplesSpan = document.getElementById('targetSamples');
         const qualityText = document.getElementById('qualityText');
 
+        console.log(`🔄 Progress update: ${sampleCount}/${this.registrationTargetSamples} samples`);
+
         if (sampleCountSpan) sampleCountSpan.textContent = sampleCount;
         if (targetSamplesSpan) targetSamplesSpan.textContent = this.registrationTargetSamples;
 

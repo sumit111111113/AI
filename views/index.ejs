@@ -1313,9 +1313,46 @@ class VMSSystem {
             };
             
             detectRegistrationFaces();
-            
+
         } catch (error) {
             console.error('Registration camera error:', error);
+        }
+    }
+
+    updateRegistrationProgress() {
+        const sampleCount = this.registrationData.descriptors.length;
+        const progressFill = document.getElementById('progressFill');
+        const sampleCountSpan = document.getElementById('sampleCount');
+        const targetSamplesSpan = document.getElementById('targetSamples');
+        const qualityText = document.getElementById('qualityText');
+
+        if (sampleCountSpan) sampleCountSpan.textContent = sampleCount;
+        if (targetSamplesSpan) targetSamplesSpan.textContent = this.registrationTargetSamples;
+
+        // Update progress bar based on sample count
+        const progress = Math.min((sampleCount / this.registrationTargetSamples) * 100, 100);
+        if (progressFill) progressFill.style.width = progress + '%';
+
+        // Update quality guidance
+        if (qualityText) {
+            if (sampleCount < 8) {
+                qualityText.textContent = 'Look straight at the camera';
+                qualityText.style.color = '#ffa500';
+            } else if (sampleCount < 15) {
+                qualityText.textContent = 'Turn your head slightly left and right';
+                qualityText.style.color = '#00ff88';
+            } else if (sampleCount < 20) {
+                qualityText.textContent = 'Look up and down slightly';
+                qualityText.style.color = '#00ff88';
+            } else if (sampleCount >= this.registrationTargetSamples) {
+                qualityText.textContent = 'Excellent! Processing registration...';
+                qualityText.style.color = '#00ff88';
+                // Auto-complete when target reached
+                setTimeout(() => this.completeRegistration(document.getElementById('newUserName').value.trim()), 1000);
+            } else {
+                qualityText.textContent = 'Almost done! A few more angles';
+                qualityText.style.color = '#00ff88';
+            }
         }
     }
     

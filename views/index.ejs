@@ -1219,11 +1219,14 @@ class VMSSystem {
 
                 const checkVideo = () => {
                     attempts++;
-                    if (regVideo.readyState >= 2 && regVideo.videoWidth > 0 && regVideo.videoHeight > 0) {
+                    console.log(`Video check attempt ${attempts}: readyState=${regVideo.readyState}, dimensions=${regVideo.videoWidth}x${regVideo.videoHeight}`);
+
+                    if (regVideo.readyState >= 3 && regVideo.videoWidth > 10 && regVideo.videoHeight > 10) {
                         console.log(`Registration video loaded: ${regVideo.videoWidth}x${regVideo.videoHeight} (attempts: ${attempts})`);
-                        resolve();
+                        // Wait an additional 500ms to ensure stability
+                        setTimeout(resolve, 500);
                     } else if (attempts >= maxAttempts) {
-                        reject(new Error('Video failed to load properly'));
+                        reject(new Error(`Video failed to load properly after ${attempts} attempts. Final state: readyState=${regVideo.readyState}, dimensions=${regVideo.videoWidth}x${regVideo.videoHeight}`));
                     } else {
                         setTimeout(checkVideo, 100);
                     }

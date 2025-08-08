@@ -16,7 +16,9 @@
                 <option value="">Loading cameras...</option>
             </select>
             <button id="flipCamera" class="flip-btn" title="Flip Camera">📷</button>
+            <button id="trackingToggle" class="tracking-btn" title="Toggle Face Tracking">📸 Track</button>
             <button id="registerUserBtn" class="register-btn" title="Register New User">👤 Register</button>
+            <button id="manageUsersBtn" class="manage-btn" title="Manage Users">⚙️ Manage</button>
         </div>
     </div>
     
@@ -33,7 +35,25 @@
     
     <div id="statusBar" class="status-bar">
         <span id="statusText">Initializing VMS...</span>
-        <span id="faceCount" class="face-counter">0 faces detected</span>
+        <div class="status-right">
+            <span id="trackingStatus" class="tracking-status">Tracking: OFF</span>
+            <span id="faceCount" class="face-counter">0 faces detected</span>
+        </div>
+    </div>
+</div>
+
+<!-- User Management Modal -->
+<div id="userManagementModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>User Management</h3>
+            <button id="closeManagementModal" class="close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="usersList" class="users-list">
+                <p class="loading-text">Loading users...</p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -162,6 +182,52 @@ body {
     transform: translateY(-1px);
 }
 
+.manage-btn {
+    background: rgba(255, 165, 0, 0.2);
+    border: 1px solid rgba(255, 165, 0, 0.4);
+    color: #ffa500;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.manage-btn:hover {
+    background: rgba(255, 165, 0, 0.3);
+    transform: translateY(-1px);
+}
+
+.tracking-btn {
+    background: rgba(138, 43, 226, 0.2);
+    border: 1px solid rgba(138, 43, 226, 0.4);
+    color: #8a2be2;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.tracking-btn:hover {
+    background: rgba(138, 43, 226, 0.3);
+    transform: translateY(-1px);
+}
+
+.tracking-btn.active {
+    background: rgba(138, 43, 226, 0.4);
+    border-color: rgba(138, 43, 226, 0.6);
+    box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+}
+
 .camera-feed-container {
     flex: 1;
     position: relative;
@@ -242,9 +308,24 @@ body {
     font-size: 0.9rem;
 }
 
+.status-right {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
 .face-counter {
     color: #00ff88;
     font-weight: 500;
+}
+
+.tracking-status {
+    color: #8a2be2;
+    font-weight: 500;
+}
+
+.tracking-status.active {
+    color: #ff4444;
 }
 
 /* Modal Styles */
@@ -420,6 +501,79 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
+/* User Management Styles */
+.users-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.user-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.user-info-item {
+    flex: 1;
+}
+
+.user-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #00ff88;
+    margin: 0 0 5px 0;
+}
+
+.user-details {
+    font-size: 0.9rem;
+    color: #ccc;
+    margin: 0;
+}
+
+.user-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.delete-btn {
+    background: rgba(255, 68, 68, 0.2);
+    border: 1px solid rgba(255, 68, 68, 0.4);
+    color: #ff4444;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.delete-btn:hover {
+    background: rgba(255, 68, 68, 0.3);
+    transform: translateY(-1px);
+}
+
+.loading-text {
+    text-align: center;
+    color: #ccc;
+    padding: 20px;
+    font-style: italic;
+}
+
+.empty-state {
+    text-align: center;
+    color: #666;
+    padding: 40px 20px;
+}
+
+.empty-state h4 {
+    color: #999;
+    margin-bottom: 10px;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
     .vms-header {
@@ -436,7 +590,7 @@ body {
         font-size: 0.8rem;
     }
     
-    .register-btn {
+    .register-btn, .manage-btn, .tracking-btn {
         padding: 6px 12px;
         font-size: 0.8rem;
     }
@@ -498,7 +652,13 @@ class VMSSystem {
             startTime: null,
             duration: 5000
         };
-        
+
+        // Face tracking properties
+        this.trackingMode = false;
+        this.trackedFaces = new Map();
+        this.captureInterval = 2000; // Capture every 2 seconds
+        this.lastCaptureTime = 0;
+
         this.init();
     }
     
@@ -590,12 +750,27 @@ class VMSSystem {
         document.getElementById('flipCamera').addEventListener('click', () => {
             this.flipCamera();
         });
+
+        // Face tracking toggle
+        document.getElementById('trackingToggle').addEventListener('click', () => {
+            this.toggleTracking();
+        });
         
         // Register user button
         document.getElementById('registerUserBtn').addEventListener('click', () => {
             this.showRegistrationModal();
         });
+
+        // Manage users button
+        document.getElementById('manageUsersBtn').addEventListener('click', () => {
+            this.showUserManagementModal();
+        });
         
+        // User management modal
+        document.getElementById('closeManagementModal').addEventListener('click', () => {
+            this.closeUserManagementModal();
+        });
+
         // Registration modal
         document.getElementById('closeModal').addEventListener('click', () => {
             this.closeRegistrationModal();
@@ -613,6 +788,12 @@ class VMSSystem {
         document.getElementById('registrationModal').addEventListener('click', (e) => {
             if (e.target.id === 'registrationModal') {
                 this.closeRegistrationModal();
+            }
+        });
+
+        document.getElementById('userManagementModal').addEventListener('click', (e) => {
+            if (e.target.id === 'userManagementModal') {
+                this.closeUserManagementModal();
             }
         });
     }
@@ -700,6 +881,74 @@ class VMSSystem {
             this.switchCamera();
         }
     }
+
+    toggleTracking() {
+        this.trackingMode = !this.trackingMode;
+        const trackingBtn = document.getElementById('trackingToggle');
+        const trackingStatus = document.getElementById('trackingStatus');
+
+        if (this.trackingMode) {
+            trackingBtn.classList.add('active');
+            trackingBtn.textContent = '🔴 Stop';
+            trackingStatus.textContent = 'Tracking: ON';
+            trackingStatus.classList.add('active');
+            this.updateStatus('Face tracking activated - Capturing images');
+        } else {
+            trackingBtn.classList.remove('active');
+            trackingBtn.textContent = '📸 Track';
+            trackingStatus.textContent = 'Tracking: OFF';
+            trackingStatus.classList.remove('active');
+            this.updateStatus('Face tracking deactivated');
+            this.trackedFaces.clear();
+        }
+    }
+
+    captureFaceImage(detection, faceId) {
+        try {
+            // Create a temporary canvas for face capture
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+
+            // Set canvas size to face box dimensions with padding
+            const padding = 20;
+            const box = detection.detection.box;
+            tempCanvas.width = box.width + (padding * 2);
+            tempCanvas.height = box.height + (padding * 2);
+
+            // Draw the face region from video
+            tempCtx.drawImage(
+                this.video,
+                box.x - padding, box.y - padding, // Source position
+                box.width + (padding * 2), box.height + (padding * 2), // Source size
+                0, 0, // Destination position
+                tempCanvas.width, tempCanvas.height // Destination size
+            );
+
+            // Convert to blob and create download link
+            tempCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const filename = `face-capture-${faceId}-${timestamp}.jpg`;
+
+                // Create invisible download link
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // Clean up URL
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+                console.log(`Face image captured: ${filename}`);
+            }, 'image/jpeg', 0.8);
+
+        } catch (error) {
+            console.error('Error capturing face image:', error);
+        }
+    }
     
     async detectFaces() {
         if (!this.isRunning || !this.video || this.video.paused || this.video.ended) {
@@ -725,8 +974,13 @@ class VMSSystem {
                     width: this.video.videoWidth,
                     height: this.video.videoHeight
                 });
-                
+
                 this.processDetections(resizedDetections);
+
+                // Handle face tracking and capture
+                if (this.trackingMode) {
+                    this.handleFaceTracking(resizedDetections);
+                }
             } else {
                 this.hideUserInfo();
             }
@@ -739,6 +993,71 @@ class VMSSystem {
         setTimeout(() => this.detectFaces(), 100);
     }
     
+    handleFaceTracking(detections) {
+        const currentTime = Date.now();
+
+        // Only capture if enough time has passed since last capture
+        if (currentTime - this.lastCaptureTime < this.captureInterval) {
+            return;
+        }
+
+        for (let i = 0; i < detections.length; i++) {
+            const detection = detections[i];
+            const box = detection.detection.box;
+
+            // Create a unique ID for this face based on position and size
+            const faceId = `face-${Math.round(box.x)}-${Math.round(box.y)}-${Math.round(box.width)}`;
+
+            // Check if this is a new face or significantly moved
+            if (!this.trackedFaces.has(faceId)) {
+                this.trackedFaces.set(faceId, {
+                    firstSeen: currentTime,
+                    lastCaptured: 0,
+                    box: box
+                });
+            }
+
+            const faceInfo = this.trackedFaces.get(faceId);
+
+            // Capture image if this face hasn't been captured recently
+            if (currentTime - faceInfo.lastCaptured >= this.captureInterval) {
+                this.captureFaceImage(detection, faceId);
+                faceInfo.lastCaptured = currentTime;
+                this.lastCaptureTime = currentTime;
+
+                // Add visual feedback for capture
+                this.drawCaptureEffect(box);
+
+                // Update status
+                const totalCaptured = Array.from(this.trackedFaces.values())
+                    .filter(f => f.lastCaptured > 0).length;
+                this.updateStatus(`Face tracking: ${totalCaptured} images captured`);
+            }
+        }
+
+        // Clean up old tracked faces (older than 10 seconds)
+        const cutoffTime = currentTime - 10000;
+        for (const [faceId, faceInfo] of this.trackedFaces) {
+            if (faceInfo.firstSeen < cutoffTime) {
+                this.trackedFaces.delete(faceId);
+            }
+        }
+    }
+
+    drawCaptureEffect(box) {
+        // Draw a flash effect to indicate capture
+        this.ctx.save();
+        this.ctx.globalAlpha = 0.7;
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.fillRect(box.x - 5, box.y - 5, box.width + 10, box.height + 10);
+        this.ctx.restore();
+
+        // Remove the effect after a short time
+        setTimeout(() => {
+            this.ctx.clearRect(box.x - 5, box.y - 5, box.width + 10, box.height + 10);
+        }, 100);
+    }
+
     processDetections(detections) {
         let recognizedUsers = [];
         let unknownFaces = [];
@@ -877,50 +1196,87 @@ class VMSSystem {
             const regVideo = document.getElementById('registrationVideo');
             const regCanvas = document.getElementById('registrationOverlay');
             const regCtx = regCanvas.getContext('2d');
-            
+
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: { width: 300, height: 225 }
             });
-            
+
             regVideo.srcObject = stream;
-            
+
+            // Wait for video metadata to load
+            await new Promise(resolve => {
+                regVideo.onloadedmetadata = () => {
+                    console.log(`Registration video loaded: ${regVideo.videoWidth}x${regVideo.videoHeight}`);
+                    resolve();
+                };
+            });
+
+            // Wait a bit more for video to start playing
+            await new Promise(resolve => setTimeout(resolve, 500));
+
             // Start face detection for registration preview
             const detectRegistrationFaces = async () => {
                 if (document.getElementById('registrationModal').style.display !== 'block') {
                     return;
                 }
-                
-                const detections = await faceapi
-                    .detectAllFaces(regVideo, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.3 }))
-                    .withFaceLandmarks()
-                    .withFaceDescriptors();
-                
-                regCtx.clearRect(0, 0, regCanvas.width, regCanvas.height);
-                
-                if (detections.length > 0) {
-                    const resized = faceapi.resizeResults(detections, {
-                        width: regVideo.videoWidth,
-                        height: regVideo.videoHeight
-                    });
-                    
-                    // Draw detection boxes manually
-                    resized.forEach(detection => {
-                        const box = detection.detection.box;
-                        regCtx.strokeStyle = '#00ff88';
-                        regCtx.lineWidth = 2;
-                        regCtx.strokeRect(box.x, box.y, box.width, box.height);
-                    });
-                    
-                    // Store descriptors during registration
-                    if (this.registrationData.startTime) {
-                        detections.forEach(detection => {
-                            if (detection.descriptor) {
-                                this.registrationData.descriptors.push(Array.from(detection.descriptor));
-                            }
-                        });
-                    }
+
+                // Check if video is ready
+                if (regVideo.paused || regVideo.ended || !regVideo.videoWidth || !regVideo.videoHeight) {
+                    setTimeout(detectRegistrationFaces, 100);
+                    return;
                 }
+
+                try {
+                    const detections = await faceapi
+                        .detectAllFaces(regVideo, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.3 }))
+                        .withFaceLandmarks()
+                        .withFaceDescriptors();
                 
+                    regCtx.clearRect(0, 0, regCanvas.width, regCanvas.height);
+
+                    if (detections.length > 0) {
+                        console.log(`Registration: Detected ${detections.length} faces`);
+                        const resized = faceapi.resizeResults(detections, {
+                            width: regVideo.videoWidth,
+                            height: regVideo.videoHeight
+                        });
+
+                        // Draw detection boxes manually
+                        resized.forEach(detection => {
+                            const box = detection.detection.box;
+                            regCtx.strokeStyle = '#00ff88';
+                            regCtx.lineWidth = 2;
+                            regCtx.strokeRect(box.x, box.y, box.width, box.height);
+
+                            // Add text indicator
+                            regCtx.fillStyle = '#00ff88';
+                            regCtx.fillRect(box.x, box.y - 20, 80, 20);
+                            regCtx.fillStyle = '#000';
+                            regCtx.font = 'bold 10px Arial';
+                            regCtx.fillText('Face Found', box.x + 5, box.y - 8);
+                        });
+
+                        // Store descriptors during registration
+                        if (this.registrationData.startTime) {
+                            detections.forEach(detection => {
+                                if (detection.descriptor) {
+                                    this.registrationData.descriptors.push(Array.from(detection.descriptor));
+                                }
+                            });
+                        }
+                    } else {
+                        // Show guidance text when no face detected
+                        regCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                        regCtx.fillRect(10, 10, 280, 30);
+                        regCtx.fillStyle = '#000';
+                        regCtx.font = 'bold 12px Arial';
+                        regCtx.fillText('Position your face in the camera view', 20, 30);
+                    }
+
+                } catch (error) {
+                    console.error('Registration detection error:', error);
+                }
+
                 setTimeout(detectRegistrationFaces, 100);
             };
             
@@ -1009,6 +1365,99 @@ class VMSSystem {
         }
     }
     
+    async showUserManagementModal() {
+        document.getElementById('userManagementModal').style.display = 'block';
+        await this.loadUsersForManagement();
+    }
+
+    closeUserManagementModal() {
+        document.getElementById('userManagementModal').style.display = 'none';
+    }
+
+    async loadUsersForManagement() {
+        const usersList = document.getElementById('usersList');
+        usersList.innerHTML = '<p class="loading-text">Loading users...</p>';
+
+        try {
+            const response = await fetch('/api/users');
+            const users = await response.json();
+
+            if (users.length === 0) {
+                usersList.innerHTML = `
+                    <div class="empty-state">
+                        <h4>No Users Registered</h4>
+                        <p>Register some users to see them here.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            usersList.innerHTML = users.map(user => `
+                <div class="user-item" data-user-id="${user.id}">
+                    <div class="user-info-item">
+                        <h4 class="user-name">${user.name}</h4>
+                        <p class="user-details">
+                            Registered: ${new Date(user.createdAt).toLocaleDateString()} |
+                            Samples: ${user.descriptors.length}
+                        </p>
+                    </div>
+                    <div class="user-actions">
+                        <button class="delete-btn" onclick="vmsSystem.deleteUser('${user.id}', '${user.name}')">
+                            🗑️ Delete
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+        } catch (error) {
+            console.error('Error loading users for management:', error);
+            usersList.innerHTML = `
+                <div class="empty-state">
+                    <h4>Error Loading Users</h4>
+                    <p>Please try again later.</p>
+                </div>
+            `;
+        }
+    }
+
+    async deleteUser(userId, userName) {
+        if (!confirm(`Are you sure you want to delete "${userName}"? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/users/${userId}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                // Remove from UI
+                const userItem = document.querySelector(`[data-user-id="${userId}"]`);
+                if (userItem) {
+                    userItem.remove();
+                }
+
+                // Reload users data for recognition
+                await this.loadUsers();
+
+                // Show success message
+                this.updateStatus(`User "${userName}" deleted successfully`);
+
+                // Check if no users left
+                const remainingUsers = document.querySelectorAll('.user-item').length;
+                if (remainingUsers === 0) {
+                    await this.loadUsersForManagement();
+                }
+            } else {
+                const result = await response.json();
+                alert(result.error || 'Failed to delete user');
+            }
+        } catch (error) {
+            console.error('Error deleting user:', error);
+            alert('Failed to delete user. Please try again.');
+        }
+    }
+
     updateStatus(message) {
         document.getElementById('statusText').textContent = message;
         console.log('VMS:', message);
@@ -1016,8 +1465,9 @@ class VMSSystem {
 }
 
 // Initialize VMS when page loads
+let vmsSystem;
 document.addEventListener('DOMContentLoaded', () => {
-    new VMSSystem();
+    vmsSystem = new VMSSystem();
 });
 </script>
 

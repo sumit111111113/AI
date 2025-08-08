@@ -1481,11 +1481,13 @@ class VMSSystem {
                 document.getElementById('newUserName').value = '';
             } else {
                 alert(result.error || 'Registration failed');
+                this.registrationInProgress = false; // Reset on error
             }
-            
+
         } catch (error) {
             console.error('Registration error:', error);
             alert('Registration failed. Please try again.');
+            this.registrationInProgress = false; // Reset on error
         }
     }
     

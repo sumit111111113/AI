@@ -734,6 +734,12 @@ class VMSSystem {
                 this.closeRegistrationModal();
             }
         });
+
+        document.getElementById('userManagementModal').addEventListener('click', (e) => {
+            if (e.target.id === 'userManagementModal') {
+                this.closeUserManagementModal();
+            }
+        });
     }
     
     async startVMS() {

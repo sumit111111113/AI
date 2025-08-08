@@ -1261,6 +1261,14 @@ class VMSSystem {
 
                     if (detections.length > 0) {
                         console.log(`Registration: Detected ${detections.length} faces`);
+
+                        // Double-check dimensions before resizing
+                        if (regVideo.videoWidth === 0 || regVideo.videoHeight === 0) {
+                            console.log(`Skipping resize - invalid dimensions: ${regVideo.videoWidth}x${regVideo.videoHeight}`);
+                            setTimeout(detectRegistrationFaces, 100);
+                            return;
+                        }
+
                         const resized = faceapi.resizeResults(detections, {
                             width: regVideo.videoWidth,
                             height: regVideo.videoHeight

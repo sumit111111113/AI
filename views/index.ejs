@@ -1417,7 +1417,9 @@ class VMSSystem {
             const result = await response.json();
             
             if (response.ok) {
-                alert(`Registration successful! ${userName} registered with ${uniqueDescriptors.length} face samples.`);
+                const quality = uniqueDescriptors.length >= this.registrationTargetSamples ? 'Excellent' :
+                               uniqueDescriptors.length >= 20 ? 'Very Good' : 'Good';
+                alert(`Registration successful! ${userName} registered with ${uniqueDescriptors.length} high-quality face samples (${quality} coverage).`);
                 await this.loadUsers(); // Reload users
                 this.closeRegistrationModal();
                 document.getElementById('newUserName').value = '';

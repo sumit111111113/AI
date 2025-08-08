@@ -1229,32 +1229,51 @@ class VMSSystem {
                         .withFaceLandmarks()
                         .withFaceDescriptors();
                 
-                regCtx.clearRect(0, 0, regCanvas.width, regCanvas.height);
-                
-                if (detections.length > 0) {
-                    const resized = faceapi.resizeResults(detections, {
-                        width: regVideo.videoWidth,
-                        height: regVideo.videoHeight
-                    });
-                    
-                    // Draw detection boxes manually
-                    resized.forEach(detection => {
-                        const box = detection.detection.box;
-                        regCtx.strokeStyle = '#00ff88';
-                        regCtx.lineWidth = 2;
-                        regCtx.strokeRect(box.x, box.y, box.width, box.height);
-                    });
-                    
-                    // Store descriptors during registration
-                    if (this.registrationData.startTime) {
-                        detections.forEach(detection => {
-                            if (detection.descriptor) {
-                                this.registrationData.descriptors.push(Array.from(detection.descriptor));
-                            }
+                    regCtx.clearRect(0, 0, regCanvas.width, regCanvas.height);
+
+                    if (detections.length > 0) {
+                        console.log(`Registration: Detected ${detections.length} faces`);
+                        const resized = faceapi.resizeResults(detections, {
+                            width: regVideo.videoWidth,
+                            height: regVideo.videoHeight
                         });
+
+                        // Draw detection boxes manually
+                        resized.forEach(detection => {
+                            const box = detection.detection.box;
+                            regCtx.strokeStyle = '#00ff88';
+                            regCtx.lineWidth = 2;
+                            regCtx.strokeRect(box.x, box.y, box.width, box.height);
+
+                            // Add text indicator
+                            regCtx.fillStyle = '#00ff88';
+                            regCtx.fillRect(box.x, box.y - 20, 80, 20);
+                            regCtx.fillStyle = '#000';
+                            regCtx.font = 'bold 10px Arial';
+                            regCtx.fillText('Face Found', box.x + 5, box.y - 8);
+                        });
+
+                        // Store descriptors during registration
+                        if (this.registrationData.startTime) {
+                            detections.forEach(detection => {
+                                if (detection.descriptor) {
+                                    this.registrationData.descriptors.push(Array.from(detection.descriptor));
+                                }
+                            });
+                        }
+                    } else {
+                        // Show guidance text when no face detected
+                        regCtx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                        regCtx.fillRect(10, 10, 280, 30);
+                        regCtx.fillStyle = '#000';
+                        regCtx.font = 'bold 12px Arial';
+                        regCtx.fillText('Position your face in the camera view', 20, 30);
                     }
+
+                } catch (error) {
+                    console.error('Registration detection error:', error);
                 }
-                
+
                 setTimeout(detectRegistrationFaces, 100);
             };
             
